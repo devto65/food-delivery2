@@ -8,8 +8,6 @@ import javax.persistence.PostPersist;
 import javax.persistence.Table;
 
 import fooddeliverybh.StoreApplication;
-import fooddeliverybh.external.Order;
-import fooddeliverybh.external.OrderService;
 import lombok.Data;
 
 @Entity
@@ -50,12 +48,6 @@ public class StoreOrder {
 		return storeOrderRepository;
 	}
 	
-	public static OrderService orderService() {
-		OrderService orderService = StoreApplication.applicationContext
-				.getBean(OrderService.class);
-		return orderService;
-	}
-	
 	public void finishCook() {
 		Cooked cooked = new Cooked(this);
 		setStatus("요리완료");
@@ -80,11 +72,11 @@ public class StoreOrder {
 		cookingStarted.publishAfterCommit();		
 	}
 
-	public static void addToStoreOrder(OrderPaid orderPaid) {
-		Order order = orderService().getOrder(orderPaid.getOrderId());
+	public static void addToStoreOrder(OrderCompleted orderCompleted) {
 		StoreOrder storeOrder = new StoreOrder();
-		storeOrder.setAddress(order.getAddress());
-		storeOrder.setCustomerId(order.getCustomerId());
+		storeOrder.setAddress(orderCompleted.getAddress());
+		storeOrder.setCustomerId(orderCompleted.getCustomerId());
+		storeOrder.setOrderId(orderCompleted.getId());
 		repository().save(storeOrder);
 	}
 

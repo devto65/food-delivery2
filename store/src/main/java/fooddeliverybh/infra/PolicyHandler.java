@@ -1,18 +1,20 @@
 package fooddeliverybh.infra;
 
-import javax.naming.NameParser;
-
-import javax.naming.NameParser;
 import javax.transaction.Transactional;
 
-import fooddeliverybh.config.kafka.KafkaProcessor;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
-import fooddeliverybh.domain.*;
+
+import fooddeliverybh.config.kafka.KafkaProcessor;
+import fooddeliverybh.domain.Food;
+import fooddeliverybh.domain.FoodRepository;
+import fooddeliverybh.domain.OrderCanceled;
+import fooddeliverybh.domain.OrderCompleted;
+import fooddeliverybh.domain.OrderEvalutated;
+import fooddeliverybh.domain.StoreOrder;
+import fooddeliverybh.domain.StoreOrderRepository;
 
 @Service
 @Transactional
@@ -26,13 +28,10 @@ public class PolicyHandler {
 	public void whatever(@Payload String eventString) {
 	}
 
-	@Autowired
-	fooddeliverybh.external.OrderService orderService;
-
-	@StreamListener(value = KafkaProcessor.INPUT, condition = "headers['type']=='OrderPaid'")
-	public void wheneverOrderPaid_AddToStoreOrder(@Payload OrderPaid orderPaid) {
-		OrderPaid event = orderPaid;
-		System.out.println("\n\n##### listener AddToStoreOrder : " + orderPaid + "\n\n");
+	@StreamListener(value = KafkaProcessor.INPUT, condition = "headers['type']=='OrderCompleted'")
+	public void wheneverOrderPaid_AddToStoreOrder(@Payload OrderCompleted orderCompleted) {
+		OrderCompleted event = orderCompleted;
+		System.out.println("\n\n##### listener AddToStoreOrder : " + orderCompleted + "\n\n");
 		if ("성공".equals(event.getStatus())) {
 			// Sample Logic //
 			StoreOrder.addToStoreOrder(event);

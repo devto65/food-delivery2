@@ -113,6 +113,7 @@ public class Order {
 		repository().findById(orderPaid.getOrderId()).ifPresent(order-> {
 			order.setStatus("결제완료");
 			repository().save(order);
+			
 		});
 	}
 
@@ -120,7 +121,14 @@ public class Order {
 		repository().findById(delivered.getOrderId()).ifPresent(order-> {
 			order.setStatus("배달완료");
 			repository().save(order);
+			
 		});
 	}
 
+    public static void updateStatus(CookingStarted cookingStarted) {
+		repository().findById(cookingStarted.getOrderId()).ifPresent(order-> {
+			order.setStatus("요리중");
+			repository().save(order);
+		});
+    }
 }
