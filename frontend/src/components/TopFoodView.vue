@@ -23,7 +23,7 @@
             headers: [
                 { text: "id", value: "id" },
                 { text: "name", value: "name" },
-                { text: "count", value: "count" },
+                { text: "order", value: "orderCount" },
                 { text: "score", value: "score" },
             ],
             topFood : [],

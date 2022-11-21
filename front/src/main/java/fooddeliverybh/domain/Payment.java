@@ -1,11 +1,14 @@
 package fooddeliverybh.domain;
 
-import fooddeliverybh.domain.OrderPaid;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.PostPersist;
+import javax.persistence.Table;
+
 import fooddeliverybh.FrontApplication;
-import javax.persistence.*;
-import java.util.List;
 import lombok.Data;
-import java.util.Date;
 
 @Entity
 @Table(name = "Payment_table")
@@ -39,13 +42,13 @@ public class Payment {
 	}
 
 	public static void cancelPayment(OrderRejected orderRejected) {
-		repository().findById(orderRejected.getOrderId()).ifPresent(payment->{
+		repository().findById(orderRejected.getOrderId()).ifPresent(payment -> {
 			payment.setStatus("결제 취소됨");
 		});
 	}
 
 	public static void cancelPayment(OrderCanceled orderCanceled) {
-		repository().findById(orderCanceled.getId()).ifPresent(payment->{
+		repository().findById(orderCanceled.getId()).ifPresent(payment -> {
 			payment.setStatus("결제 취소됨");
 		});
 	}

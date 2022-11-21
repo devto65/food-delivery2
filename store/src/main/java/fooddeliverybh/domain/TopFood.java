@@ -1,8 +1,9 @@
 package fooddeliverybh.domain;
 
-import javax.persistence.*;
-import java.util.List;
-import java.util.Date;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
 import lombok.Data;
 
 @Entity
@@ -14,8 +15,9 @@ public class TopFood {
         //@GeneratedValue(strategy=GenerationType.AUTO)
         private Long id;
         private String name;
-        private Integer count;
-        private Integer score;
-
+        private Integer evalCount;
+        private Float score;
+        private Integer totalScore;
+        private Integer orderCount;
 
 }

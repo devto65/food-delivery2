@@ -6,6 +6,7 @@
         </v-card-title>
 
         <v-card-text>
+            <Number label="Score" v-model="value.score" :editMode="editMode"/>
         </v-card-text>
 
         <v-card-actions>
@@ -41,6 +42,7 @@
             value: {},
         }),
         created() {
+            this.value.score = 0;
         },
         watch: {
         },

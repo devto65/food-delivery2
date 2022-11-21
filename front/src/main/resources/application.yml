@@ -39,6 +39,10 @@ logging:
     org.hibernate.type: trace
     org.springframework.cloud: debug
 
+api:
+  url:
+    front: front:8081
+
 
 server:
   port: 8081
@@ -68,5 +72,9 @@ spring:
         event-out:
           destination: fooddeliverybh
           contentType: application/json
+
+api:
+  url:
+    front: front:8080
 
 
