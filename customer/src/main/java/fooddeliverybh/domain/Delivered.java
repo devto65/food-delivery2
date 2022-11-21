@@ -9,4 +9,5 @@ public class Delivered extends AbstractEvent {
 
     private Long id;
     private Long orderId;
+    private Long customerId;
 }

@@ -9,6 +9,8 @@ import java.util.*;
 public class CookingStarted extends AbstractEvent {
 
     private Long id;
+    private Long orderId;
+    private Long customerId;
 }
 
 

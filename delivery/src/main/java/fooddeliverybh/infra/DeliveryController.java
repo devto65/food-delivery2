@@ -1,4 +1,5 @@
 package fooddeliverybh.infra;
+
 import fooddeliverybh.domain.*;
 
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,29 +16,36 @@ import javax.transaction.Transactional;
 // @RequestMapping(value="/deliveries")
 @Transactional
 public class DeliveryController {
-    @Autowired
-    DeliveryRepository deliveryRepository;
+	@Autowired
+	DeliveryRepository deliveryRepository;
 
+	@RequestMapping(value = "deliveries/{id}/confirm", method = RequestMethod.PUT, produces = "application/json;charset=UTF-8")
+	public Delivery confirm(@PathVariable(value = "id") Long id, HttpServletRequest request,
+			HttpServletResponse response) throws Exception {
+		System.out.println("##### /delivery/confirm  called #####");
+		Optional<Delivery> optionalDelivery = deliveryRepository.findById(id);
 
+		optionalDelivery.orElseThrow(() -> new Exception("No Entity Found"));
+		Delivery delivery = optionalDelivery.get();
+		delivery.confirm();
 
+		deliveryRepository.save(delivery);
+		return delivery;
 
-    @RequestMapping(value = "deliveries/{id}/confirm",
-        method = RequestMethod.PUT,
-        produces = "application/json;charset=UTF-8")
-    public Delivery confirm(@PathVariable(value = "id") Long id, HttpServletRequest request, HttpServletResponse response) throws Exception {
-            System.out.println("##### /delivery/confirm  called #####");
-            Optional<Delivery> optionalDelivery = deliveryRepository.findById(id);
-            
-            optionalDelivery.orElseThrow(()-> new Exception("No Entity Found"));
-            Delivery delivery = optionalDelivery.get();
-            delivery.confirm();
-            
-            deliveryRepository.save(delivery);
-            return delivery;
-            
-    }
-    
+	}
+	
+	@RequestMapping(value = "deliveries/{id}/accept", method = RequestMethod.PUT, produces = "application/json;charset=UTF-8")
+	public Delivery accept(@PathVariable(value = "id") Long id, HttpServletRequest request,
+			HttpServletResponse response) throws Exception {
+		System.out.println("##### /delivery/accept  called #####");
+		Optional<Delivery> optionalDelivery = deliveryRepository.findById(id);
 
+		optionalDelivery.orElseThrow(() -> new Exception("No Entity Found"));
+		Delivery delivery = optionalDelivery.get();
+		delivery.accept();
 
+		deliveryRepository.save(delivery);
+		return delivery;
 
+	}
 }

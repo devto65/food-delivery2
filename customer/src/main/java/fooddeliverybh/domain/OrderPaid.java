@@ -11,6 +11,7 @@ public class OrderPaid extends AbstractEvent {
     private Long id;
     private Long orderId;
     private String status;
+    private Long customerId;
 }
 
 

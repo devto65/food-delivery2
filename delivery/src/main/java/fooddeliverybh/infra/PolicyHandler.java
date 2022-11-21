@@ -14,32 +14,25 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import fooddeliverybh.domain.*;
 
-
 @Service
 @Transactional
-public class PolicyHandler{
-    @Autowired DeliveryRepository deliveryRepository;
-    
-    @StreamListener(KafkaProcessor.INPUT)
-    public void whatever(@Payload String eventString){}
+public class PolicyHandler {
+	@Autowired
+	DeliveryRepository deliveryRepository;
 
-    @StreamListener(value=KafkaProcessor.INPUT, condition="headers['type']=='Cooked'")
-    public void wheneverCooked_AddDevery(@Payload Cooked cooked){
+	@StreamListener(KafkaProcessor.INPUT)
+	public void whatever(@Payload String eventString) {
+	}
 
-        Cooked event = cooked;
-        System.out.println("\n\n##### listener AddDevery : " + cooked + "\n\n");
+	@StreamListener(value = KafkaProcessor.INPUT, condition = "headers['type']=='Cooked'")
+	public void wheneverCooked_AddDevery(@Payload Cooked cooked) {
 
+		Cooked event = cooked;
+		System.out.println("\n\n##### listener AddDevery : " + cooked + "\n\n");
 
-        
+		// Sample Logic //
+		Delivery.addDevery(event);
 
-        // Sample Logic //
-        Delivery.addDevery(event);
-        
-
-        
-
-    }
+	}
 
 }
-
-

@@ -10,4 +10,11 @@ public class FoodAdded extends AbstractEvent {
     private Long id;
     private String name;
     private Long storeId;
+    
+    public FoodAdded(Food aggregate){
+        super(aggregate);
+    }
+    public FoodAdded(){
+        super();
+    }
 }

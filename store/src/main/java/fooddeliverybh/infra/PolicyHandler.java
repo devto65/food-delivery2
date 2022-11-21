@@ -14,76 +14,49 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import fooddeliverybh.domain.*;
 
-
 @Service
 @Transactional
-public class PolicyHandler{
-    @Autowired StoreOrderRepository storeOrderRepository;
-    @Autowired FoodRepository foodRepository;
-    
-    @StreamListener(KafkaProcessor.INPUT)
-    public void whatever(@Payload String eventString){}
+public class PolicyHandler {
+	@Autowired
+	StoreOrderRepository storeOrderRepository;
+	@Autowired
+	FoodRepository foodRepository;
 
-    @Autowired
-    fooddeliverybh.external.OrderService orderService;
+	@StreamListener(KafkaProcessor.INPUT)
+	public void whatever(@Payload String eventString) {
+	}
 
-    @StreamListener(value=KafkaProcessor.INPUT, condition="headers['type']=='OrderPaid'")
-    public void wheneverOrderPaid_AddToStoreOrder(@Payload OrderPaid orderPaid){
+	@Autowired
+	fooddeliverybh.external.OrderService orderService;
 
-        OrderPaid event = orderPaid;
-        System.out.println("\n\n##### listener AddToStoreOrder : " + orderPaid + "\n\n");
+	@StreamListener(value = KafkaProcessor.INPUT, condition = "headers['type']=='OrderPaid'")
+	public void wheneverOrderPaid_AddToStoreOrder(@Payload OrderPaid orderPaid) {
+		OrderPaid event = orderPaid;
+		System.out.println("\n\n##### listener AddToStoreOrder : " + orderPaid + "\n\n");
+		if ("성공".equals(event.getStatus())) {
+			// Sample Logic //
+			StoreOrder.addToStoreOrder(event);
+		}
+	}
 
-        // REST Request Sample
-        
-        // orderService.getOrder(/** mapping value needed */);
+	@StreamListener(value = KafkaProcessor.INPUT, condition = "headers['type']=='OrderCanceled'")
+	public void wheneverOrderCanceled_Cancel(@Payload OrderCanceled orderCanceled) {
 
+		OrderCanceled event = orderCanceled;
+		System.out.println("\n\n##### listener Cancel : " + orderCanceled + "\n\n");
+		// Sample Logic //
+		StoreOrder.cancel(event);
+	}
 
-        
+	@StreamListener(value = KafkaProcessor.INPUT, condition = "headers['type']=='OrderEvalutated'")
+	public void wheneverOrderEvalutated_Evalute(@Payload OrderEvalutated orderEvalutated) {
 
-        // Sample Logic //
-        StoreOrder.addToStoreOrder(event);
-        
+		OrderEvalutated event = orderEvalutated;
+		System.out.println("\n\n##### listener Evalute : " + orderEvalutated + "\n\n");
 
-        
+		// Sample Logic //
+		Food.evalute(event);
 
-    }
-
-    @StreamListener(value=KafkaProcessor.INPUT, condition="headers['type']=='OrderCanceled'")
-    public void wheneverOrderCanceled_Cancel(@Payload OrderCanceled orderCanceled){
-
-        OrderCanceled event = orderCanceled;
-        System.out.println("\n\n##### listener Cancel : " + orderCanceled + "\n\n");
-
-
-        
-
-        // Sample Logic //
-        StoreOrder.cancel(event);
-        
-        Food.cancel(event);
-        
-
-        
-
-    }
-
-    @StreamListener(value=KafkaProcessor.INPUT, condition="headers['type']=='OrderEvalutated'")
-    public void wheneverOrderEvalutated_Evalute(@Payload OrderEvalutated orderEvalutated){
-
-        OrderEvalutated event = orderEvalutated;
-        System.out.println("\n\n##### listener Evalute : " + orderEvalutated + "\n\n");
-
-
-        
-
-        // Sample Logic //
-        Food.evalute(event);
-        
-
-        
-
-    }
+	}
 
 }
-
-

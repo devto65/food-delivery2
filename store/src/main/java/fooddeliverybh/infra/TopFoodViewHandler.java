@@ -23,12 +23,13 @@ public class TopFoodViewHandler {
         try {
 
             if (!foodAdded.validate()) return;
-
             // view 객체 생성
             TopFood topFood = new TopFood();
             // view 객체에 이벤트의 Value 를 set 함
             topFood.setCount(0);
-            topFood.setTotalStar(0);
+            topFood.setScore(0);
+            topFood.setId(foodAdded.getId());
+            topFood.setName(foodAdded.getName());
             // view 레파지 토리에 save
             topFoodRepository.save(topFood);
 
@@ -52,7 +53,7 @@ public class TopFoodViewHandler {
                 topFood.setScore(topFood.getScore() + orderEvalutated.getScore());
                 // view 레파지 토리에 save
                  topFoodRepository.save(topFood);
-                }
+            }
 
 
         }catch (Exception e){
