@@ -1,221 +1,116 @@
 package fooddeliverybh.domain;
 
-import fooddeliverybh.domain.OrderPlaced;
-import fooddeliverybh.domain.OrderEvalutated;
-import fooddeliverybh.domain.OrderCanceled;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.PostPersist;
+import javax.persistence.PostRemove;
+import javax.persistence.PrePersist;
+import javax.persistence.PreRemove;
+import javax.persistence.Table;
+
+import org.hibernate.exception.DataException;
+
 import fooddeliverybh.FrontApplication;
-import javax.persistence.*;
-import java.util.List;
 import lombok.Data;
-import java.util.Date;
 
 @Entity
-@Table(name="Order_table")
+@Table(name = "Order_table")
 @Data
 
-public class Order  {
+public class Order {
 
-    
-    @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    
-    
-    
-    
-    
-    private Long id;
-    
-    
-    
-    
-    
-    private Long foodId;
-    
-    
-    
-    
-    
-    private Long customerId;
-    
-    
-    
-    
-    
-    private String options;
-    
-    
-    
-    
-    
-    private String address;
-    
-    
-    
-    
-    
-    private String status;
-    
-    
-    
-    
-    
-    private Integer score;
-    
-    
-    
-    
-    
-    private Long paymentId;
-    
-    
-    
-    
-    
-    private Long storeId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
 
-    @PostPersist
-    public void onPostPersist(){
+	private Long id;
 
+	private Long foodId;
 
-        OrderPlaced orderPlaced = new OrderPlaced(this);
-        orderPlaced.publishAfterCommit();
+	private Long customerId;
 
+	private String options;
 
+	private String address;
 
-        OrderEvalutated orderEvalutated = new OrderEvalutated(this);
-        orderEvalutated.publishAfterCommit();
+	private String status;
 
-    }
-    @PostRemove
-    public void onPostRemove(){
+	private Integer score;
 
+	private Long paymentId;
 
-        OrderCanceled orderCanceled = new OrderCanceled(this);
-        orderCanceled.publishAfterCommit();
+	private Long storeId;
 
-    }
-    @PrePersist
-    public void onPrePersist(){
-    }
-    @PreRemove
-    public void onPreRemove(){
-    }
+	@PostPersist
+	public void onPostPersist() {
+		OrderPlaced orderPlaced = new OrderPlaced(this);
+		orderPlaced.publishAfterCommit();
+	}
 
-    public static OrderRepository repository(){
-        OrderRepository orderRepository = FrontApplication.applicationContext.getBean(OrderRepository.class);
-        return orderRepository;
-    }
+	@PostRemove
+	public void onPostRemove() {
+		OrderCanceled orderCanceled = new OrderCanceled(this);
+		orderCanceled.publishAfterCommit();
+	}
 
+	@PrePersist
+	public void onPrePersist() {
+	}
 
+	@PreRemove
+	public void onPreRemove() {
+		if ("요리중".equals(getStatus())
+				|| "배달대기".equals(getStatus())
+				|| "배달중".equals(getStatus())
+				|| "배달완료".equals(getStatus())) {
+			throw new RuntimeException("주문을 취소할 수 없습니다.");
+		}
+	}
 
-    public void evaluate(){
-    }
+	public static OrderRepository repository() {
+		OrderRepository orderRepository = FrontApplication.applicationContext.getBean(OrderRepository.class);
+		return orderRepository;
+	}
 
-    public static void cancel(OrderRejected orderRejected){
+	public void evaluate(EvaluateCommand evaluateCommand) {
+		setScore(evaluateCommand.getScore());
+		OrderEvalutated orderEvalutated = new OrderEvalutated(this);
+		orderEvalutated.publishAfterCommit();		
+	}
 
-        /** Example 1:  new item 
-        Order order = new Order();
-        repository().save(order);
+	public static void cancel(OrderRejected orderRejected) {
+		repository().findById(orderRejected.getOrderId()).ifPresent(order-> {
+			order.setStatus("주문거부됨");
+			repository().save(order);
+		});
+	}
 
-        */
+	public static void updateStatus(OrderRejected orderRejected) {
+		repository().findById(orderRejected.getOrderId()).ifPresent(order-> {
+			order.setStatus("주문거부됨");
+			repository().save(order);
+		});
+	}
+	public static void updateStatus(OrderAccepted orderAccepted) {
+		repository().findById(orderAccepted.getOrderId()).ifPresent(order-> {
+			order.setStatus("주문접수됨");
+			repository().save(order);
+		});
+	}
 
-        /** Example 2:  finding and process
-        
-        repository().findById(orderRejected.get???()).ifPresent(order->{
-            
-            order // do something
-            repository().save(order);
+	public static void updateStatus(OrderPaid orderPaid) {
+		repository().findById(orderPaid.getOrderId()).ifPresent(order-> {
+			order.setStatus("결제완료");
+			repository().save(order);
+		});
+	}
 
-
-         });
-        */
-
-        
-    }
-    public static void updateStatus(OrderAccepted orderAccepted){
-
-        /** Example 1:  new item 
-        Order order = new Order();
-        repository().save(order);
-
-        */
-
-        /** Example 2:  finding and process
-        
-        repository().findById(orderAccepted.get???()).ifPresent(order->{
-            
-            order // do something
-            repository().save(order);
-
-
-         });
-        */
-
-        
-    }
-    public static void updateStatus(OrderRejected orderRejected){
-
-        /** Example 1:  new item 
-        Order order = new Order();
-        repository().save(order);
-
-        */
-
-        /** Example 2:  finding and process
-        
-        repository().findById(orderRejected.get???()).ifPresent(order->{
-            
-            order // do something
-            repository().save(order);
-
-
-         });
-        */
-
-        
-    }
-    public static void updateStatus(OrderPaid orderPaid){
-
-        /** Example 1:  new item 
-        Order order = new Order();
-        repository().save(order);
-
-        */
-
-        /** Example 2:  finding and process
-        
-        repository().findById(orderPaid.get???()).ifPresent(order->{
-            
-            order // do something
-            repository().save(order);
-
-
-         });
-        */
-
-        
-    }
-    public static void updateStatus(Delivered delivered){
-
-        /** Example 1:  new item 
-        Order order = new Order();
-        repository().save(order);
-
-        */
-
-        /** Example 2:  finding and process
-        
-        repository().findById(delivered.get???()).ifPresent(order->{
-            
-            order // do something
-            repository().save(order);
-
-
-         });
-        */
-
-        
-    }
-
+	public static void updateStatus(Delivered delivered) {
+		repository().findById(delivered.getOrderId()).ifPresent(order-> {
+			order.setStatus("배달완료");
+			repository().save(order);
+		});
+	}
 
 }
