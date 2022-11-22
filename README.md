@@ -230,12 +230,14 @@ HTTP/1.1 200     0.26 secs:     248 bytes ==> GET  /foods/1
     	@PrePersist
 	public void onPrePersist() {
 	    // Get request from Food
+		long start = System.currentTimeMillis();
        fooddeliverybh.external.Food food =
     		   FrontApplication.applicationContext.getBean(fooddeliverybh.external.FoodService.class)
     		   	.getFood(getFoodId());
 		if (!food.getAvailable()) {
 			throw new RuntimeException("현재 주문 불가능한 메뉴입니다.");
 		}
+		System.out.println("주문이 완료됨: elapse:" + (System.currentTimeMillis() - start));
 	}
 ```
 주문
