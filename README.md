@@ -25,10 +25,10 @@
 
 비기능적 요구사항
 1. 트랜잭션
-    1. 주문할 수 없는 음식(Food)의 주문건은 아예 거래가 성립되지 않아야 한다  Sync 호출 
+    1. 주문할 수 없는 메뉴(Food)의 주문건은 아예 거래가 성립되지 않아야 한다  Sync 호출 
 2. 장애격리
     1. 상점관리 기능이 수행되지 않더라도 주문은 365일 24시간 받을 수 있어야 한다  Async (event-driven), Eventual Consistency
-    2. 주문시에 상점관리(Food) 기능이 수쟁되지 않아도 주문을 받을 수 있도록 처리한다. Circuit breaker, fallback
+    2. 주문시에 상점관리(Food) 기능이 수행되지 않아도 주문을 받을 수 있도록 처리한다. Circuit breaker, fallback
 3. 성능
     1. 고객이 자주 상점관리에서 확인할 수 있는 배달상태를 주문시스템(프론트엔드)에서 확인할 수 있어야 한다.  CQRS
     2. 배달상태가 바뀔때마다 카톡 등으로 알림을 줄 수 있어야 한다.  Event driven
@@ -48,7 +48,7 @@
 6. Gateway / Ingress
 
 ## Saga (Pub / Sub)
-1. 주문의 결제가 완료되면 OrderCompleted 이벤트를 발생 시킨다.
+1. 주문의 결제가 완료되면 OrderCompleted 이벤트를 발생 시킨다(front).
  ```java
     public static void updateStatus(OrderPaid orderPaid) {
         repository().findById(orderPaid.getOrderId()).ifPresent(order-> {
@@ -59,9 +59,9 @@
         });
     }
 ```    
-2. OrderCompleted 이벤트에 입점 상점에 주문정보들 등록한다.
+2. OrderCompleted 이벤트에 입점 상점에 주문정보들 등록한다(store).
 ```java
-	// 주문완료 이벤트 처리
+    // 주문완료 이벤트 처리
     public void wheneverOrderCompleted_AddToStoreOrder(
         @Payload OrderCompleted orderCompleted
     ) {
@@ -70,17 +70,17 @@
     }
 
     // 점주에 주문 등록
-	public static void addToStoreOrder(OrderCompleted orderCompleted) {
-		StoreOrder storeOrder = new StoreOrder();
-		storeOrder.setAddress(orderCompleted.getAddress());
-		storeOrder.setCustomerId(orderCompleted.getCustomerId());
-		storeOrder.setOrderId(orderCompleted.getId());
-		storeOrder.setFoodId(orderCompleted.getFoodId());
-		storeOrder.setOptions(orderCompleted.getOptions());
-		storeOrder.setStoreId(orderCompleted.getStoreId());
-		storeOrder.setStatus("대기중");
-		repository().save(storeOrder);
-	}
+    public static void addToStoreOrder(OrderCompleted orderCompleted) {
+        StoreOrder storeOrder = new StoreOrder();
+        storeOrder.setAddress(orderCompleted.getAddress());
+        storeOrder.setCustomerId(orderCompleted.getCustomerId());
+        storeOrder.setOrderId(orderCompleted.getId());
+        storeOrder.setFoodId(orderCompleted.getFoodId());
+        storeOrder.setOptions(orderCompleted.getOptions());
+        storeOrder.setStoreId(orderCompleted.getStoreId());
+        storeOrder.setStatus("대기중");
+        repository().save(storeOrder);
+    }
 ```   
 
 ## CQRS
@@ -110,7 +110,7 @@
         }
     } 
 ```  
-2. 주문에 평가 이벤트() 시에 TopFood의 점수를 갱신한다.
+2. 주문에 평가 이벤트(OrderEvalutated) 시에 TopFood의 점수를 갱신한다.
 ```java
     // 주문(메뉴) 평가
 	@StreamListener(KafkaProcessor.INPUT)
@@ -151,7 +151,8 @@
         orderRejected.publishAfterCommit();
     }
 ```
-2. OrderRejected 이벤트에 주문 상태를 갱신한다.
+
+2. OrderRejected 이벤트에 주문 상태를 갱신한다(key는 주문 ID).
 ```java 
 	public static void cancel(OrderRejected orderRejected) {
 		repository().findById(orderRejected.getOrderId()).ifPresent(order-> {
@@ -198,6 +199,7 @@ HTTP/1.1 200     0.26 secs:     248 bytes ==> GET  /foods/1
 
 ```
 
+구현
 ```java
     // 
     @FeignClient(
@@ -240,6 +242,7 @@ HTTP/1.1 200     0.26 secs:     248 bytes ==> GET  /foods/1
 		System.out.println("주문이 완료됨: elapse:" + (System.currentTimeMillis() - start));
 	}
 ```
+
 주문
 ```
 gitpod /workspace/food-delivery2 (main) $ http :8081/orders foodId=1 storeId=1 customerId=1 options=None address=Seoul
@@ -295,6 +298,38 @@ Connection: keep-alive
                 allowCredentials: true
 
 
+```
+2. API Gateway 테스트
+```
+D:\cloud-l2\edu\food-delivery2>http https://8088-devto65-fooddelivery2-8bm9gh4fk8u.ws-us77.gitpod.io/foods
+HTTP/1.1 200 OK
+Content-Type: application/hal+json
+Date: Tue, 22 Nov 2022 07:42:47 GMT
+Transfer-Encoding: chunked
+Vary: Origin, Access-Control-Request-Method, Access-Control-Request-Headers
+
+{
+    "_embedded": {
+        "foods": [
+            {
+                "_links": {
+                    "food": {
+                        "href": "http://localhost:8082/foods/1"
+                    },
+                    "self": {
+                        "href": "http://localhost:8082/foods/1"
+                    }
+                },
+                "available": true,
+                "count": 0,
+                "name": "Pizza",
+                "score": 0,
+                "storeId": 1
+            }
+        ]
+    },
+ ...
+}
 ```
 
 
