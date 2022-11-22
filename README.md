@@ -43,29 +43,158 @@
 # 체크포인트
 ## Saga (Pub / Sub)
 1. 주문의 결제가 완료되면 OrderCompleted 이벤트를 발생 시킨다.
-1. OrderCompleted 이벤트에 입점 상점에 주문정보들 등록한다.
-1. 점주가 주문을 거부하면 OrderRejected 이벤트를 발생시킨다.
-1. OrderRejected 이벤트에 주문 상태를 
- 
  ```java
- 	public static void updateStatus(OrderPaid orderPaid) {
-		repository().findById(orderPaid.getOrderId()).ifPresent(order-> {
-			order.setStatus("결제완료");
-			repository().save(order);
-			
-		});
-	}
+    public static void updateStatus(OrderPaid orderPaid) {
+        repository().findById(orderPaid.getOrderId()).ifPresent(order-> {
+            order.setStatus("결제완료");
+            repository().save(order);
+            OrderCanceled orderCanceled = new OrderCanceled(order);
+            orderCanceled.publishAfterCommit();			
+        });
+    }
 ```    
+2. OrderCompleted 이벤트에 입점 상점에 주문정보들 등록한다.
+```java
+	// 주문완료 이벤트 처리
+    public void wheneverOrderCompleted_AddToStoreOrder(
+        @Payload OrderCompleted orderCompleted
+    ) {
+        OrderCompleted event = orderCompleted;
+        StoreOrder.addToStoreOrder(event);
+    }
 
+    // 점주에 주문 등록
+    public static void addToStoreOrder(OrderCompleted orderCompleted) {
+        StoreOrder storeOrder = new StoreOrder();
+        storeOrder.setAddress(orderCompleted.getAddress());
+        storeOrder.setCustomerId(orderCompleted.getCustomerId());
+        storeOrder.setOrderId(orderCompleted.getId());
+        repository().save(storeOrder);
+    }
+```   
 
 ## CQRS
+1. 메뉴가 등록 이벤트(FoodAdded) 발생 시에  TopFood에 메뉴를 등록한다.
+```java
+    // 메뉴가 등록됨
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenFoodAdded_then_CREATE_1(@Payload FoodAdded foodAdded) {
+        try {
+
+            if (!foodAdded.validate())
+                return;
+            // view 객체 생성
+            TopFood topFood = new TopFood();
+            // view 객체에 이벤트의 Value 를 set 함
+            topFood.setEvalCount(0);
+            topFood.setScore(Float.valueOf(0));
+            topFood.setOrderCount(0);
+            topFood.setId(foodAdded.getId());
+            topFood.setName(foodAdded.getName());
+            // view 레파지 토리에 save
+            topFoodRepository.save(topFood);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    } 
+```  
+2. 주문에 평가 이벤트() 시에 TopFood의 점수를 갱신한다.
+```java
+    // 주문(메뉴) 평가
+	@StreamListener(KafkaProcessor.INPUT)
+	public void whenOrderEvalutated_then_UPDATE_1(@Payload OrderEvalutated orderEvalutated) {
+		try {
+			if (!orderEvalutated.validate())
+				return;
+			// view 객체 조회
+			Optional<TopFood> topFoodOptional = topFoodRepository.findById(orderEvalutated.getFoodId());
+
+			if (topFoodOptional.isPresent()) {
+				TopFood topFood = topFoodOptional.get();
+				topFood.setEvalCount(topFood.getEvalCount() + 1);
+				topFood.setTotalScore(topFood.getTotalScore() + orderEvalutated.getScore());
+				topFood.setScore((float) topFood.getTotalScore() / topFood.getEvalCount());
+				// view 레파지 토리에 save
+				topFoodRepository.save(topFood);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+    // TopFood 조회 API
+    @RepositoryRestResource(collectionResourceRel="topFoods", path="topFoods")
+    public interface TopFoodRepository extends PagingAndSortingRepository<TopFood, Long> {
+
+    
+    }   
+```
+
 
 ## Compensation / Correlation
-
+1. 상점주가 주문을 거부하면 OrderRejected 이벤트를 발생시킨다(key는 주문 ID).
+```java
+     public void reject() {
+        OrderRejected orderRejected = new OrderRejected(this);
+        setStatus("거부됨");
+        orderRejected.publishAfterCommit();
+    }
+```
+2. OrderRejected 이벤트에 주문 상태를 갱신한다.
+```java 
+	public static void cancel(OrderRejected orderRejected) {
+		repository().findById(orderRejected.getOrderId()).ifPresent(order-> {
+			order.setStatus("주문거부됨");
+			repository().save(order);
+		});
+	}
+```
 ## Request / Response
+1. 고객 주문 시에 상점에서 메뉴를 조회하여 주문 가능유무를 검사한다.
+```
+    @PrePersist
+    public void onPrePersist() {
+        // Get request from Food
+       fooddeliverybh.external.Food food =
+               FrontApplication.applicationContext.getBean(fooddeliverybh.external.FoodService.class)
+                .getFood(getFoodId());
+        if (!food.getAvailable()) {
+            throw new RuntimeException("현재 주문 불가능한 메뉴입니다.");
+        }
+    }
+```
 
 ## Circuit Breaker
+1. 메뉴 조회 서비를 서킷브레이커로 구현하고 실패 시에 주문 가능하도록 반환한다.
+```java
+@FeignClient(
+    name = "store",
+    url = "${api.url.store}",
+    fallback = FoodServiceImpl.class
+)
+public interface FoodService {
+    @RequestMapping(method = RequestMethod.GET, path = "/foods/{id}")
+    public Food getFood(@PathVariable("id") Long id);
+}
 
+// fallback
+@Service
+public class FoodServiceImpl implements FoodService {
+
+    /**
+     * Fallback
+     */
+    public Food getFood(Long id) {
+        Food food = new Food();
+        food.setId(id);
+        food.setAvailable(true);
+        return food;
+    }
+}
+```
+
+   
 ## Gateway / Ingress
 
 
