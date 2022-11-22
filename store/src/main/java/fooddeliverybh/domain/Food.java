@@ -26,6 +26,8 @@ public class Food {
 
 	private Long storeId;
 
+	private Boolean available;
+
 	@PostPersist
 	public void onPostPersist() {
 		FoodAdded foodAdded = new FoodAdded(this);

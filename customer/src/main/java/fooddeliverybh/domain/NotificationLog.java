@@ -94,5 +94,11 @@ public class NotificationLog {
 		notificationLog.setMessage("요리시작");
 		repository().save(notificationLog);
 	}
-
+    public static void katok(OrderCompleted orderCompleted) {
+		NotificationLog notificationLog = new NotificationLog();
+		notificationLog.setOrderId(orderCompleted.getId());
+		notificationLog.setCustomerId(orderCompleted.getCustomerId());
+		notificationLog.setMessage("주문완료");
+		repository().save(notificationLog);
+    }
 }

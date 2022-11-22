@@ -14,6 +14,7 @@ import fooddeliverybh.domain.Order;
 import fooddeliverybh.domain.OrderAccepted;
 import fooddeliverybh.domain.OrderCanceled;
 import fooddeliverybh.domain.OrderPaid;
+import fooddeliverybh.domain.OrderPlaced;
 import fooddeliverybh.domain.OrderRejected;
 import fooddeliverybh.domain.OrderRepository;
 import fooddeliverybh.domain.Payment;
@@ -154,5 +155,17 @@ public class PolicyHandler {
 
         // Sample Logic //
         Order.updateStatus(event);
+    }
+
+    @StreamListener(
+        value = KafkaProcessor.INPUT,
+        condition = "headers['type']=='OrderPlaced'"
+    )
+    public void wheneverOrderPlaced_Pay(@Payload OrderPlaced orderPlaced) {
+        OrderPlaced event = orderPlaced;
+        System.out.println("\n\n##### listener Pay : " + orderPlaced + "\n\n");
+
+        // Sample Logic //
+        Payment.pay(event);
     }
 }

@@ -10,8 +10,6 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreRemove;
 import javax.persistence.Table;
 
-import org.hibernate.exception.DataException;
-
 import fooddeliverybh.FrontApplication;
 import lombok.Data;
 
@@ -44,18 +42,8 @@ public class Order {
 
 	@PostPersist
 	public void onPostPersist() {
-        //Following code causes dependency to external APIs
-        // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
-
-        fooddeliverybh.external.Payment payment = new fooddeliverybh.external.Payment();
-        // mappings goes here
-        FrontApplication.applicationContext
-            .getBean(fooddeliverybh.external.PaymentService.class)
-            .pay(payment);
-
         OrderPlaced orderPlaced = new OrderPlaced(this);
         orderPlaced.publishAfterCommit();
-
 	}
 
 	@PostRemove
@@ -66,6 +54,13 @@ public class Order {
 
 	@PrePersist
 	public void onPrePersist() {
+	    // Get request from Food
+       fooddeliverybh.external.Food food =
+    		   FrontApplication.applicationContext.getBean(fooddeliverybh.external.FoodService.class)
+    		   	.getFood(getFoodId());
+		if (!food.getAvailable()) {
+			throw new RuntimeException("현재 주문 불가능한 메뉴입니다.");
+		}
 	}
 
 	@PreRemove

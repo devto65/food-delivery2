@@ -31,7 +31,7 @@ public class Payment {
 	public void onPostPersist() {
 
 		OrderPaid orderPaid = new OrderPaid(this);
-		setStatus("성공");
+		orderPaid.setStatus(getStatus());
 		orderPaid.publishAfterCommit();
 
 	}
@@ -57,6 +57,7 @@ public class Payment {
 		Payment payment = new Payment();
 		payment.setOrderId(orderPlaced.getId());
 		payment.setCustomerId(orderPlaced.getCustomerId());
+		payment.setStatus("성공");
 		repository().save(payment);
 	}
 
