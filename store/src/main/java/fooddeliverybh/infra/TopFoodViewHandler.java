@@ -28,6 +28,7 @@ public class TopFoodViewHandler {
 			// view 객체에 이벤트의 Value 를 set 함
 			topFood.setEvalCount(0);
 			topFood.setScore(Float.valueOf(0));
+			topFood.setTotalScore(0);
 			topFood.setOrderCount(0);
 			topFood.setId(foodAdded.getId());
 			topFood.setName(foodAdded.getName());

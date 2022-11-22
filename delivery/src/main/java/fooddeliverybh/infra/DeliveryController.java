@@ -19,7 +19,7 @@ public class DeliveryController {
 	@Autowired
 	DeliveryRepository deliveryRepository;
 
-	@RequestMapping(value = "deliveries/{id}/confirm", method = RequestMethod.PUT, produces = "application/json;charset=UTF-8")
+	@RequestMapping(value = "/deliveries/{id}/confirm", method = RequestMethod.PUT, produces = "application/json;charset=UTF-8")
 	public Delivery confirm(@PathVariable(value = "id") Long id, HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		System.out.println("##### /delivery/confirm  called #####");
@@ -34,7 +34,7 @@ public class DeliveryController {
 
 	}
 	
-	@RequestMapping(value = "deliveries/{id}/accept", method = RequestMethod.PUT, produces = "application/json;charset=UTF-8")
+	@RequestMapping(value = "/deliveries/{id}/accept", method = RequestMethod.PUT, produces = "application/json;charset=UTF-8")
 	public Delivery accept(@PathVariable(value = "id") Long id, HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		System.out.println("##### /delivery/accept  called #####");

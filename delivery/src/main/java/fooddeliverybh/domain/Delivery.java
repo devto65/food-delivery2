@@ -46,11 +46,13 @@ public class Delivery {
 	}
 
 	public void confirm() {
+		setStatus("배달완료");
 		Delivered delivered = new Delivered(this);
 		delivered.publishAfterCommit();		
 	}
 	
 	public void accept() {
+		setStatus("배달중");
 		DeliveryStarted deliveryStarted = new DeliveryStarted(this);
 		deliveryStarted.publishAfterCommit();
 	}
@@ -58,7 +60,7 @@ public class Delivery {
 	public static void addDevery(Cooked cooked) {
 		Delivery delivery = new Delivery();
 		delivery.setAddress(cooked.getAddress());
-		delivery.setCustomerId(cooked.getCutomerId());
+		delivery.setCustomerId(cooked.getCustomerId());
 		delivery.setFoodId(cooked.getId());
 		delivery.setOrderId(cooked.getOrderId());
 		delivery.setStoreId(cooked.getStoreId());

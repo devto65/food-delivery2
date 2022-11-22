@@ -40,6 +40,13 @@
 ![model](https://user-images.githubusercontent.com/118491332/203220858-aeb3f741-0e8e-4dfb-bf38-b98e2eea4b9a.png)
 
 # 체크포인트
+1. Saga (Pub / Sub)
+2. CQRS
+3. Compensation / Correlation
+4. Request / Response
+5. Circuit Breaker
+6. Gateway / Ingress
+
 ## Saga (Pub / Sub)
 1. 주문의 결제가 완료되면 OrderCompleted 이벤트를 발생 시킨다.
  ```java
@@ -47,8 +54,8 @@
         repository().findById(orderPaid.getOrderId()).ifPresent(order-> {
             order.setStatus("결제완료");
             repository().save(order);
-            OrderCanceled orderCanceled = new OrderCanceled(order);
-            orderCanceled.publishAfterCommit();			
+			OrderCompleted orderCompleted = new OrderCompleted(order);
+			orderCompleted.publishAfterCommit();		
         });
     }
 ```    
@@ -63,13 +70,17 @@
     }
 
     // 점주에 주문 등록
-    public static void addToStoreOrder(OrderCompleted orderCompleted) {
-        StoreOrder storeOrder = new StoreOrder();
-        storeOrder.setAddress(orderCompleted.getAddress());
-        storeOrder.setCustomerId(orderCompleted.getCustomerId());
-        storeOrder.setOrderId(orderCompleted.getId());
-        repository().save(storeOrder);
-    }
+	public static void addToStoreOrder(OrderCompleted orderCompleted) {
+		StoreOrder storeOrder = new StoreOrder();
+		storeOrder.setAddress(orderCompleted.getAddress());
+		storeOrder.setCustomerId(orderCompleted.getCustomerId());
+		storeOrder.setOrderId(orderCompleted.getId());
+		storeOrder.setFoodId(orderCompleted.getFoodId());
+		storeOrder.setOptions(orderCompleted.getOptions());
+		storeOrder.setStoreId(orderCompleted.getStoreId());
+		storeOrder.setStatus("대기중");
+		repository().save(storeOrder);
+	}
 ```   
 
 ## CQRS
@@ -87,6 +98,7 @@
             // view 객체에 이벤트의 Value 를 set 함
             topFood.setEvalCount(0);
             topFood.setScore(Float.valueOf(0));
+            topFood.setTotalScore(0);
             topFood.setOrderCount(0);
             topFood.setId(foodAdded.getId());
             topFood.setName(foodAdded.getName());
@@ -165,7 +177,29 @@
 
 ## Circuit Breaker
 1. 메뉴 조회 서비를 서킷브레이커로 구현하고 실패 시에 주문 가능하도록 반환한다.
+
+설정정보
+```yml
+feign:
+  hystrix:
+    enabled: true
+hystrix:
+  command:
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 100
+```
+부하
+```
+siege -c50 -t20S  -v  'http://localhost:8082/foods/1'
+
+HTTP/1.1 200     0.26 secs:     248 bytes ==> GET  /foods/1
+HTTP/1.1 200     0.26 secs:     248 bytes ==> GET  /foods/1
+HTTP/1.1 200     0.26 secs:     248 bytes ==> GET  /foods/1
+
+```
+
 ```java
+    // 
     @FeignClient(
         name = "store",
         url = "${api.url.store}",
@@ -184,13 +218,40 @@
          * Fallback
          */
         public Food getFood(Long id) {
+            System.out.println("###  Circuit Breaker  fallback ####");
             Food food = new Food();
             food.setId(id);
             food.setAvailable(true);
             return food;
         }
     }
+
+    // 주문코드
+    	@PrePersist
+	public void onPrePersist() {
+	    // Get request from Food
+       fooddeliverybh.external.Food food =
+    		   FrontApplication.applicationContext.getBean(fooddeliverybh.external.FoodService.class)
+    		   	.getFood(getFoodId());
+		if (!food.getAvailable()) {
+			throw new RuntimeException("현재 주문 불가능한 메뉴입니다.");
+		}
+	}
 ```
+주문
+```
+gitpod /workspace/food-delivery2 (main) $ http :8081/orders foodId=1 storeId=1 customerId=1 options=None address=Seoul
+HTTP/1.1 201 
+Connection: keep-alive
+```
+
+서비로그
+```
+2022-11-22 07:16:45.361 DEBUG [front,1934bf92ef444512,0df894254ef90a93,true] 51650 --- [hystrix-store-1] o.s.c.s.i.w.c.feign.TracingFeignClient   : Handled receive of RealSpan(1934bf92ef444512/9003b8d23b094de2)
+###  Circuit Breaker  fallback ####
+주문이 완료됨: elapse:372
+```
+
   
 ## Gateway / Ingress
 1. API Gateway 설정

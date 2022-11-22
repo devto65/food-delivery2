@@ -12,7 +12,7 @@ public class Cooked extends AbstractEvent {
     private Long id;
     private Long foodId;
     private Long orderId;
-    private Long cutomerId;
+    private Long customerId;
     private Long storeId;
     private String address;
     private String options;

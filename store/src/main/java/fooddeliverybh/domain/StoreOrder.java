@@ -75,6 +75,10 @@ public class StoreOrder {
 		storeOrder.setAddress(orderCompleted.getAddress());
 		storeOrder.setCustomerId(orderCompleted.getCustomerId());
 		storeOrder.setOrderId(orderCompleted.getId());
+		storeOrder.setFoodId(orderCompleted.getFoodId());
+		storeOrder.setOptions(orderCompleted.getOptions());
+		storeOrder.setStoreId(orderCompleted.getStoreId());
+		storeOrder.setStatus("대기중");
 		repository().save(storeOrder);
 	}
 
