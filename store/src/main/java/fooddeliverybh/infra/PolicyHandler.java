@@ -59,8 +59,6 @@ public class PolicyHandler {
 
         // Sample Logic //
         StoreOrder.cancel(event);
-
-        Food.cancel(event);
     }
 
     @StreamListener(

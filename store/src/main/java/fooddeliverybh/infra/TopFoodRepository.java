@@ -8,7 +8,5 @@ import java.util.List;
 @RepositoryRestResource(collectionResourceRel="topFoods", path="topFoods")
 public interface TopFoodRepository extends PagingAndSortingRepository<TopFood, Long> {
 
-    
-
-    
+ 
 }

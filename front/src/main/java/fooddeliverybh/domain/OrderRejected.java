@@ -9,7 +9,6 @@ import java.util.*;
 public class OrderRejected extends AbstractEvent {
 
     private Long id;
-    private Long paymentId;
     private Long orderId;
     private String reason;
     private Long customerId;

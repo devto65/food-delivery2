@@ -27,8 +27,6 @@ public class StoreOrder {
 
 	private String status;
 
-	private Long paymentId;
-
 	private String address;
 
 	private String options;

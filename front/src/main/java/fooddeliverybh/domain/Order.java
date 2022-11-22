@@ -34,9 +34,9 @@ public class Order {
 
 	private String status;
 
-	private Integer score;
+	private Integer score = 0;
 
-	private Long paymentId;
+	private Long paymentId = 0L;
 
 	private Long storeId;
 
@@ -108,7 +108,8 @@ public class Order {
 		repository().findById(orderPaid.getOrderId()).ifPresent(order-> {
 			order.setStatus("결제완료");
 			repository().save(order);
-			
+			OrderCompleted orderCompleted = new OrderCompleted(order);
+			orderCompleted.publishAfterCommit();			
 		});
 	}
 

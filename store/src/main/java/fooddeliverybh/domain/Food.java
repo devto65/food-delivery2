@@ -20,19 +20,20 @@ public class Food {
 
 	private String name;
 
-	private Integer count;
+	private Integer count = 0;
 
-	private Integer score;
+	private Integer score = 0;
 
 	private Long storeId;
 
-	private Boolean available;
+	private Boolean available = true;
 
 	@PostPersist
 	public void onPostPersist() {
 		FoodAdded foodAdded = new FoodAdded(this);
 		foodAdded.publishAfterCommit();
 	}
+	
 
 	public static FoodRepository repository() {
 		FoodRepository foodRepository = StoreApplication.applicationContext.getBean(FoodRepository.class);

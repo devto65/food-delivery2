@@ -26,10 +26,8 @@ public class PolicyHandler {
 
 	@StreamListener(value = KafkaProcessor.INPUT, condition = "headers['type']=='Cooked'")
 	public void wheneverCooked_AddDevery(@Payload Cooked cooked) {
-
 		Cooked event = cooked;
 		System.out.println("\n\n##### listener AddDevery : " + cooked + "\n\n");
-
 		// Sample Logic //
 		Delivery.addDevery(event);
 
