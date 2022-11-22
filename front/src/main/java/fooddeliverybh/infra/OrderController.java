@@ -34,7 +34,6 @@ public class OrderController {
             optionalOrder.orElseThrow(()-> new Exception("No Entity Found"));
             Order order = optionalOrder.get();
             order.evaluate(evaluateCommand);
-            
             orderRepository.save(order);
             return order;
             

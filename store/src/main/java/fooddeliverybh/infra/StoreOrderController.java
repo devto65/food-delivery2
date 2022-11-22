@@ -58,7 +58,6 @@ public class StoreOrderController {
 		optionalStoreOrder.orElseThrow(() -> new Exception("No Entity Found"));
 		StoreOrder storeOrder = optionalStoreOrder.get();
 		storeOrder.reject();
-
 		storeOrderRepository.save(storeOrder);
 		return storeOrder;
 

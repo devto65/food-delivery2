@@ -60,7 +60,6 @@ public class PolicyHandler {
         System.out.println(
             "\n\n##### listener CancelPayment : " + orderCanceled + "\n\n"
         );
-
         // Sample Logic //
         Payment.cancelPayment(event);
     }
@@ -108,8 +107,6 @@ public class PolicyHandler {
         System.out.println(
             "\n\n##### listener UpdateStatus : " + orderRejected + "\n\n"
         );
-
-        // Sample Logic //
         Order.updateStatus(event);
     }
 

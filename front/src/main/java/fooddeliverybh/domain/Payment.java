@@ -49,7 +49,9 @@ public class Payment {
 
 	public static void cancelPayment(OrderCanceled orderCanceled) {
 		repository().findById(orderCanceled.getId()).ifPresent(payment -> {
-			payment.setStatus("결제 취소됨");
+			payment.setStatus("결제 취소됨(User)");
+			// or
+			// repository().delete(payment);
 		});
 	}
 
